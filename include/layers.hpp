@@ -4,10 +4,39 @@
 #include <vector>
 #include <cstdint>
 
-#include "bool_mat.hpp"
+
+// 
+// boolean matrix class
+// 
+class BoolMat {
+	
+public:
+	BoolMat(unsigned, unsigned);
+	virtual ~BoolMat();
+	
+	// operators
+	// not sure how to name and what to overload
+	// BoolMat operator* (BoolMat);
+	// std::vector<bool> operator* (std::vector<bool>);
+	BoolMat operator& (const BoolMat) const;
+	std::vector<bool> operator& (const std::vector<bool>) const;
+	BoolMat operator^ (const BoolMat) const;
+	// idk about this
+	// std::vector<bool> operator[] (unsigned);
+
+private:
+	std::vector<bool> *W; 	// or bool **W ????
+	// use boost bitfield?
+};
+
+bool operator& (const std::vector<bool>,const std::vector<bool>);
+std::vector<bool> operator^ (const std::vector<bool>, const std::vector<bool>);
 
 
+
+// 
 // layer for all bits
+// 
 class LayerBIT {
 
 public:
@@ -25,7 +54,10 @@ private:
 };
 
 
+
+// 
 // layer for dword-wise operations
+// 
 class LayerDWORD {
 
 public:
