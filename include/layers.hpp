@@ -50,7 +50,7 @@ public:
 
 private:
 	std::vector<bool *> weights(); // retreive pointer to bits for external
-				       // manipulation
+				       // manipulation. needed???
 	
 	BoolMat W;		// weight matrix
 	std::vector<bool> B;	// biases
