@@ -10,6 +10,8 @@
 // boolean matrix class
 // 
 class BoolMat {
+
+	friend class LayerBIT;
 	
 public:
 	BoolMat(unsigned, unsigned);
@@ -22,13 +24,16 @@ public:
 	BoolMat operator& (const BoolMat) const;
 	std::vector<bool> operator& (const std::vector<bool>) const;
 	BoolMat operator^ (const BoolMat) const;
+
+	unsigned GetNDOF() const;
 	// idk about this
 	// std::vector<bool> operator[] (unsigned);
 
 private:
+	unsigned M, N;
+
 	std::vector<bool> *W; 	// or bool **W ???? one vector saves space
 	// use boost bit field?
-	unsigned M, N;
 };
 
 bool operator& (const std::vector<bool>, const std::vector<bool>);
@@ -43,20 +48,19 @@ class LayerBIT {
 
 public:
 	LayerBIT(unsigned, unsigned); // input, output dim
-	virtual ~LayerBIT();
-	std::vector<bool> Compute(std::vector<bool>);
-	unsigned GetSize();
-	void FlipRandom(unsigned);
+	std::vector<bool> Compute(std::vector<bool>) const;
+	unsigned GetNDOF() const;	// DOF (number of parameters)
+	void FlipBit(unsigned);
 
 private:
-	std::vector<bool *> weights(); // retreive pointer to bits for external
-				       // manipulation. needed???
-	
-	BoolMat W;		// weight matrix
-	std::vector<bool> B;	// biases
+	// std::vector<bool *> weights();
+	// retreive pointer to bits for external
+	// manipulation. needed???
 
 	unsigned N_in, N_out, N_bits;
 
+	BoolMat W;		// weight matrix
+	std::vector<bool> B;	// biases
 };
 
 
@@ -68,17 +72,16 @@ class LayerDWORD {
 
 public:
 	LayerDWORD(unsigned, unsigned);
-	virtual ~LayerDWORD();
 	std::vector<bool> Compute(std::vector<bool>);
-	unsigned GetSize();
-	void FlipRandom(unsigned);
+	unsigned GetNDOF();	// DOF (number of parameters)
+	void FlipBit(unsigned);
 
 private:
+
+	unsigned N_in, N_out, N_bits;
 	
 	std::vector<BoolMat> W;	// weights (Dword-wise)
 	std::vector<uint32_t> B; // biases (Dword-wise)
-
-	unsigned N_in, N_out, N_bits;
 };
 
 // LayerADD??
@@ -102,7 +105,6 @@ class BoolNN {
 
 public:
 	BoolNN();
-	virtual ~BoolNN();
 
 	// file i/o
 	bool LoadFile(std::string);
@@ -113,7 +115,7 @@ public:
 	bool AddLayer(LayerBIT *);
 
 	// simulation
-	void FlipRandom();
+	void FlipBit();
 	std::vector<bool> Compute(std::vector<bool>);
 
 private:

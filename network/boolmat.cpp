@@ -126,3 +126,7 @@ BoolMat BoolMat::operator^ (const BoolMat rhs) const {
 
 	return res;
 }
+
+unsigned BoolMat::GetNDOF() const {
+	return M*N;
+}
