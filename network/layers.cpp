@@ -9,8 +9,7 @@ static uint32_t BitPack (const std::vector<bool> v, const unsigned offset) {
 	uint32_t result = 0;
 
 	if (offset > v.size()) {
-		std::cerr << "offset mismatch in"
-			  << "BitPack" << std::endl;
+		std::cerr << "offset mismatch in BitPack" << std::endl;
 		return result;
 	}
 
@@ -19,6 +18,26 @@ static uint32_t BitPack (const std::vector<bool> v, const unsigned offset) {
 		result |= v[n] << n;
 	}
 	return result;
+}
+
+static void BitUnpack(std::vector<bool> v, const uint32_t a, unsigned offset) {
+
+	if (offset > v.size()) {
+		std::cerr << "offset mismatch in BitUnpack"
+			  << std::endl;
+		return;
+	}
+
+	if (offset + sizeof(uint32_t) > v.size()) {
+		std::cerr << "offset + size mismatch in BitUnpack"
+			  << std::endl;
+	}
+
+	for (unsigned n = offset; (n < offset + sizeof(uint32_t))
+		     && (n < v.size()) ; n++) {
+		v[n] = a & (1 << (n - offset));
+	}
+	return;
 }
 
 
