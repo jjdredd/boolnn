@@ -4,7 +4,7 @@
 #include "layers.hpp"
 
 
-static uint32_t BitPack (const std::vector<bool> v, const unsigned offset) {
+static uint32_t BitPack (const std::vector<bool>& v, const unsigned offset) {
 
 	uint32_t result = 0;
 
@@ -20,7 +20,8 @@ static uint32_t BitPack (const std::vector<bool> v, const unsigned offset) {
 	return result;
 }
 
-static void BitUnpack(std::vector<bool> v, const uint32_t a, unsigned offset) {
+static void BitUnpack(std::vector<bool>& v, const uint32_t a,
+		      const unsigned offset) {
 
 	if (offset > v.size()) {
 		std::cerr << "offset mismatch in BitUnpack"
@@ -42,27 +43,53 @@ static void BitUnpack(std::vector<bool> v, const uint32_t a, unsigned offset) {
 
 
 //
-// LayerBIT class
+// LayerGeneric class
 // 
-LayerBIT::LayerBIT(unsigned N_in, unsigned N_out)
-	: N_in(N_in), N_out(N_out), W(N_in, 2*N_out), B(2*N_out) {
+LayerGeneric::LayerGeneric(LayerKind kind, unsigned N_in, unsigned N_out)
+	: kind(kind), N_in(N_in), N_out(N_out), W(N_in, 2*N_out), B(2*N_out) {
 
-	N_bits = N_in * N_out + 2 * N_out;
+
+	N_bits = N_in * N_out;
+	
+	if ( !is_BIT(kind) ) {
+		N_bits /= sizeof(uint32_t);
+	}
+
+	if ( is_Biased(kind) ) {
+		N_bits += 2 * N_out;
+	}
+	
 }
 
-unsigned LayerBIT::GetNDOF() const {
+unsigned LayerGeneric::GetNDOF() const {
 	return N_bits;
 }
 
-std::vector<bool> LayerBIT::Compute(std::vector<bool> input) const {
+std::vector<bool> LayerGeneric::Compute(const std::vector<bool>& input) const {
 
 	std::vector<bool> result(N_out), a = W & input;
 
 	if (input.size() != N_in) {
 		std::cerr << "size mismatch in"
-			  << "LayerBIT::Compute" << std::endl;
+			  << "LayerGeneric::Compute" << std::endl;
 	}
 
+	if (kind == LayerKind::ADD) {
+		// just add and be done with it
+		for (unsigned i = 0; i < N_out; i += sizeof(uint32_t)) {
+			uint32_t s_1 = BitPack(a, 2*i);
+			uint32_t s_2 = BitPack(a, 2*i + 1);
+			// add mod 2^32
+			BitUnpack(result, s_1 + s_2, i);
+		}
+		return result;
+	}
+
+	if ( is_Biased(kind) ) {
+		a = a ^ B;
+	}
+
+	// optimize for DWORD ???
 	for (unsigned i = 0; i < N_out; i++) {
 		result[i] = a[2*i] & a[2*i + 1];
 	}
@@ -70,64 +97,20 @@ std::vector<bool> LayerBIT::Compute(std::vector<bool> input) const {
 	return result;
 }
 
-void LayerBIT::FlipBit(unsigned N) {
+void LayerGeneric::FlipBit(unsigned N) {
 	
-	unsigned n = N < GetNDOF() ? N : N%GetNDOF();
+	unsigned n = N < GetNDOF() ? N : N%GetNDOF(); // clip it
 	unsigned k = n - W.GetNDOF();
 
 	if (k > 0) {
+		// if it's an unbiased layer, we will have k = 0,
+		// so this this shouldn't be reachable
+		// in the unbiased case
 		B[k] = !B[k];
 	} else {
+		// not using k here
 		unsigned i = n / W.M;
 		unsigned j = n % W.M;
-		W[i][j] = !W[i][j];
-	}
-}
-
-
-
-//
-// LayerDWORD
-// 
-LayerDWORD::LayerDWORD(unsigned N_in, unsigned N_out)
-	: N_in(N_in), N_out(N_out), W(N_in, 2*N_out), B(2*N_out) {
-	
-	N_bits = N_in * N_out + 2*N_out;
-}
-
-unsigned LayerDWORD::GetNDOF() {
-	return N_bits;
-}
-
-void LayerDWORD::FlipBit(unsigned N) {
-
-	unsigned n = N < GetNDOF() ? N : N % GetNDOF();
-	unsigned k = n - W.GetNDOF();
-
-	if (k > 0) {
-		unsigned k_int = k / B.size();
-		unsigned k_bit = k % sizeof(uint32_t); // change if type
-						       // in the header
-						       // changed
-		B[k_int] ^= 1 << k_bit;
-	} else {
-		unsigned i = n / W.M;
-		unsigned j = n % W.M;
-		W[i][j] = !W[i][j];
-	}
-}
-
-std::vector<bool> LayerDWORD::Compute(std::vector<bool> input) {
-
-	std::vector<bool> result;
-
-	if (input.size() != N_in * sizeof(uint32_t)) {
-		std::cerr << "size mismatch in"
-			  << "LayerDWORD::Compute" << std::endl;
-		return result;
-	}
-
-	for (unsigned i = 0; i < N_in; i++) {
-		// uint32_t a = BitPack(input, i);
+		W.W[i][j] = !W.W[i][j];
 	}
 }

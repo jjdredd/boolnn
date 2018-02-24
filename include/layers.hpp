@@ -2,7 +2,6 @@
 #define _BOOLNN_LAYERS_
 
 #include <vector>
-#include <list>
 #include <cstdint>
 
 
@@ -11,7 +10,7 @@
 // 
 class BoolMat {
 
-	friend class LayerBIT;
+	friend class LayerGeneric;
 	
 public:
 	BoolMat(unsigned, unsigned);
@@ -21,9 +20,9 @@ public:
 	// not sure how to name and what to overload
 	// BoolMat operator* (BoolMat);
 	// std::vector<bool> operator* (std::vector<bool>);
-	BoolMat operator& (const BoolMat) const;
-	std::vector<bool> operator& (const std::vector<bool>) const;
-	BoolMat operator^ (const BoolMat) const;
+	BoolMat operator& (const BoolMat&) const;
+	std::vector<bool> operator& (const std::vector<bool>&) const;
+	BoolMat operator^ (const BoolMat&) const;
 
 	unsigned GetNDOF() const;
 	// idk about this
@@ -36,19 +35,40 @@ private:
 	// use boost bit field?
 };
 
-bool operator& (const std::vector<bool>, const std::vector<bool>);
-std::vector<bool> operator^ (const std::vector<bool>, const std::vector<bool>);
+bool operator& (const std::vector<bool>&, const std::vector<bool>&);
+std::vector<bool> operator^ (const std::vector<bool>&, const std::vector<bool>&);
 
+
+
+//
+// Layer types
+// 
+enum class LayerKind : char {
+	BIT,
+	DWORD,
+	BIT_BIAS,
+	DWORD_BIAS,
+	ADD
+};
+
+
+inline bool is_Biased (LayerKind k) {
+	return (k == LayerKind::BIT_BIAS) || (k == LayerKind::DWORD_BIAS);
+}
+
+inline bool is_BIT (LayerKind k) {
+	return (k == LayerKind::BIT) || (k == LayerKind::BIT_BIAS);
+}
 
 
 // 
 // layer for all bits
 // 
-class LayerBIT {
+class LayerGeneric {
 
 public:
-	LayerBIT(unsigned, unsigned); // input, output dim
-	std::vector<bool> Compute(std::vector<bool>) const;
+	LayerGeneric(LayerKind, unsigned, unsigned); // input, output dim
+	std::vector<bool> Compute(const std::vector<bool>&) const;
 	unsigned GetNDOF() const;	// DOF (number of parameters)
 	void FlipBit(unsigned);
 
@@ -57,43 +77,11 @@ private:
 	// retreive pointer to bits for external
 	// manipulation. needed???
 
+	LayerKind kind;
 	unsigned N_in, N_out, N_bits;
 
 	BoolMat W;		// weight matrix
 	std::vector<bool> B;	// biases
-};
-
-
-
-// 
-// layer for dword-wise operations
-// 
-class LayerDWORD {
-
-public:
-	LayerDWORD(unsigned, unsigned);
-	std::vector<bool> Compute(std::vector<bool>);
-	unsigned GetNDOF();	// DOF (number of parameters)
-	void FlipBit(unsigned);
-
-private:
-
-	unsigned N_in, N_out, N_bits;
-	
-	std::vector<BoolMat> W;	// weights (Dword-wise)
-	std::vector<uint32_t> B; // biases (Dword-wise)
-};
-
-// LayerADD??
-
-
-//
-// Layer types
-// 
-enum class LayerKind {
-	BIT,
-	DWORD,
-	ADD
 };
 
 
@@ -107,19 +95,18 @@ public:
 	BoolNN();
 
 	// file i/o
-	bool LoadFile(std::string);
-	bool DumpFile(std::string);
+	bool LoadFile(const std::string&);
+	bool DumpFile(const std::string&);
 
 	// construction/modification
-	bool AddLayer(LayerDWORD *);
-	bool AddLayer(LayerBIT *);
+	bool AddLayer(LayerGeneric);
 
 	// simulation
 	void FlipBit();
-	std::vector<bool> Compute(std::vector<bool>);
+	std::vector<bool> Compute(const std::vector<bool>&);
 
 private:
-	std::list< std::pair<void *, unsigned> > layers;
+	std::vector<LayerGeneric> layers;
 	// make parallel layers????
 
 };

@@ -8,8 +8,8 @@
 //
 // boolean vector products
 // 
-bool operator& (const std::vector<bool> first,
-		const std::vector<bool> second) {
+bool operator& (const std::vector<bool>& first,
+		const std::vector<bool>& second) {
 
 	bool res = false;
 	unsigned N = first.size();
@@ -27,8 +27,8 @@ bool operator& (const std::vector<bool> first,
 }
 
 
-std::vector<bool> operator^ (const std::vector<bool> first,
-			     const std::vector<bool> second) {
+std::vector<bool> operator^ (const std::vector<bool>& first,
+			     const std::vector<bool>& second) {
 
 	std::vector<bool> res;
 	unsigned N = first.size();
@@ -66,7 +66,7 @@ BoolMat::~BoolMat () {
 	delete[] W;
 }
 
-BoolMat BoolMat::operator& (const BoolMat rhs) const {
+BoolMat BoolMat::operator& (const BoolMat& rhs) const {
 
 	BoolMat res(rhs.M, rhs.N);
 
@@ -87,7 +87,7 @@ BoolMat BoolMat::operator& (const BoolMat rhs) const {
 	return res;
 }
 
-std::vector<bool> BoolMat::operator& (const std::vector<bool> rhs) const {
+std::vector<bool> BoolMat::operator& (const std::vector<bool>& rhs) const {
 
 	std::vector<bool> res;
 
@@ -107,7 +107,7 @@ std::vector<bool> BoolMat::operator& (const std::vector<bool> rhs) const {
 	return res;
 }
 
-BoolMat BoolMat::operator^ (const BoolMat rhs) const {
+BoolMat BoolMat::operator^ (const BoolMat& rhs) const {
 
 	BoolMat res(M, N);
 
