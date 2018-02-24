@@ -2,6 +2,8 @@
 #define _BOOLNN_LAYERS_
 
 #include <vector>
+#include <fstream>
+
 #include <cstdint>
 
 
@@ -24,6 +26,11 @@ public:
 	std::vector<bool> operator& (const std::vector<bool>&) const;
 	BoolMat operator^ (const BoolMat&) const;
 
+	// io
+	bool Write (std::fstream&) const;
+	bool Read (std::fstream&);
+
+
 	unsigned GetNDOF() const;
 	// idk about this
 	// std::vector<bool> operator[] (unsigned);
@@ -40,15 +47,16 @@ std::vector<bool> operator^ (const std::vector<bool>&, const std::vector<bool>&)
 
 
 
+
 //
 // Layer types
 // 
 enum class LayerKind : char {
-	BIT,
-	DWORD,
-	BIT_BIAS,
-	DWORD_BIAS,
-	ADD
+	BIT = 1,
+	DWORD = 2,
+	BIT_BIAS = 3,
+	DWORD_BIAS = 4,
+	ADD = 5
 };
 
 
@@ -72,6 +80,10 @@ public:
 	unsigned GetNDOF() const;	// DOF (number of parameters)
 	void FlipBit(unsigned);
 
+	// io
+	bool Write (std::fstream&) const;
+	bool Read (std::fstream&);
+
 private:
 	// std::vector<bool *> weights();
 	// retreive pointer to bits for external
@@ -83,6 +95,7 @@ private:
 	BoolMat W;		// weight matrix
 	std::vector<bool> B;	// biases
 };
+
 
 
 
@@ -102,7 +115,7 @@ public:
 	bool AddLayer(LayerGeneric);
 
 	// simulation
-	void FlipBit();
+	void FlipBit(unsigned);
 	std::vector<bool> Compute(const std::vector<bool>&);
 
 private:

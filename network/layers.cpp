@@ -1,9 +1,9 @@
 #include <iostream>
-#include <vector>
 
 #include "layers.hpp"
 
 
+// pack a vector of bits in uint32_t starting from offset
 static uint32_t BitPack (const std::vector<bool>& v, const unsigned offset) {
 
 	uint32_t result = 0;
@@ -20,6 +20,7 @@ static uint32_t BitPack (const std::vector<bool>& v, const unsigned offset) {
 	return result;
 }
 
+// unpack a vector of bits from uint32_t and write to v starting from offset
 static void BitUnpack(std::vector<bool>& v, const uint32_t a,
 		      const unsigned offset) {
 
@@ -109,8 +110,88 @@ void LayerGeneric::FlipBit(unsigned N) {
 		B[k] = !B[k];
 	} else {
 		// not using k here
-		unsigned i = n / W.M;
+		unsigned i = n / (W.M * sizeof(uint32_t));
 		unsigned j = n % W.M;
 		W.W[i][j] = !W.W[i][j];
 	}
 }
+
+
+static LayerKind KindCode(uint32_t code) {
+
+	switch (code) {
+	case 1:
+		return LayerKind::BIT;
+	case 2:
+		return LayerKind::DWORD;
+	case 3:
+		return LayerKind::BIT_BIAS;
+	case 4:
+		return LayerKind::DWORD_BIAS;
+	case 5:
+		return LayerKind::ADD;
+	default:
+		std::cerr << "wrong layer kind in file" << std::endl;
+		return LayerKind::BIT;
+	}
+}
+
+
+bool LayerGeneric::Write (std::fstream& out) const {
+
+	uint32_t o_kind = static_cast<uint32_t> (kind),
+		o_N_in =  static_cast<uint32_t> (N_in),
+		o_N_out = static_cast<uint32_t> (N_out),
+		o_N_bits = static_cast<uint32_t> (N_bits);
+
+	// write header
+	out.write((char *) &o_kind, sizeof(uint32_t))
+		.write((char *) &o_N_in, sizeof(uint32_t))
+		.write((char *) &o_N_out, sizeof(uint32_t))
+		.write((char *) &o_N_bits, sizeof(uint32_t));
+
+	// write weights
+	W.Write(out);
+
+	if ( !is_Biased(kind) ) return true; // no biases, we're done here
+
+	// write biases
+	for (unsigned i = 0; i < 2*N_out; i++) {
+		uint8_t val;
+		val = static_cast<uint8_t> (B[i]);
+		out.write((char *) &val, sizeof(uint8_t));
+	}
+
+	return true;
+}
+
+bool LayerGeneric::Read (std::fstream& in) {
+
+	uint32_t r_kind, r_N_in, r_N_out, r_N_bits;
+
+	in.read((char *) &r_kind, sizeof(uint32_t))
+		.read((char *) &r_N_in, sizeof(uint32_t))
+		.read((char *) &r_N_out, sizeof(uint32_t))
+		.read((char *) &r_N_bits, sizeof(uint32_t));
+
+	// read header
+	kind = KindCode (r_kind);
+	N_in =  static_cast<unsigned> (r_N_in);
+	N_out = static_cast<unsigned> (r_N_out);
+	N_bits = static_cast<unsigned> (r_N_bits);
+
+	// read weights
+	W.Read(in);
+
+	if ( !is_Biased(kind) )	return true; // no biases, we're done here
+
+	// read biases
+	for (unsigned i = 0; i < 2*N_out; i++) {
+		uint8_t val;
+		in.read((char *) &val, sizeof(uint8_t));
+		B[i] =  static_cast<bool> (val);
+	}
+
+	return true;
+}
+

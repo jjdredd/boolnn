@@ -130,3 +130,55 @@ BoolMat BoolMat::operator^ (const BoolMat& rhs) const {
 unsigned BoolMat::GetNDOF() const {
 	return M*N;
 }
+
+bool BoolMat::Write (std::fstream& out) const {
+	
+	uint32_t size_M = static_cast<uint32_t> (M),
+		size_N = static_cast<uint32_t> (N);
+
+	// write header
+	out.write( (char *) &size_M, sizeof(uint32_t))
+		.write((char *) &size_N, sizeof(uint32_t));
+
+	// write matrix
+	for (unsigned i = 0; i < M; i++) {
+		for (unsigned j = 0; j < N; j++) {
+			uint8_t val = static_cast<uint8_t> (W[i][j]);
+			out.write((char *) &val, sizeof(uint8_t));
+		}
+	}
+
+	return true;
+}
+
+bool BoolMat::Read (std::fstream& in) {
+
+	uint32_t size_M, size_N;
+	uint8_t val;
+
+	in.read((char *) &size_M, sizeof(uint32_t))
+		.read((char *) &size_N, sizeof(uint32_t));
+
+	// get sizes straight
+	if (size_M != M || size_N != N) {
+		delete[] W;
+
+		W = new std::vector<bool>[size_M];
+		for (unsigned i = 0; i < size_M; i++) {
+			W[i].reserve(size_N);
+		}
+	}
+
+	M = size_M;
+	N = size_N;
+
+	// read matrix
+	for (unsigned i = 0; i < M; i++) {
+		for (unsigned j = 0; j < N; j++) {
+			in.read((char *) &val, sizeof(uint8_t));
+			W[i][j] = static_cast<bool> (val);
+		}
+	}
+
+	return true;
+}
