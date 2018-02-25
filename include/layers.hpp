@@ -111,8 +111,10 @@ public:
 	bool LoadFile(const std::string&);
 	bool DumpFile(const std::string&);
 
-	// construction/modification
-	bool AddLayer(LayerGeneric);
+	// Add an already constructed Layer
+	bool AddLayer(LayerGeneric&);
+	// add a layer of a certain kind with output size
+	bool AddLayer(LayerKind, unsigned);
 
 	// simulation
 	void FlipBit(unsigned);

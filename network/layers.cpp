@@ -110,9 +110,21 @@ void LayerGeneric::FlipBit(unsigned N) {
 		B[k] = !B[k];
 	} else {
 		// not using k here
-		unsigned i = n / (W.M * sizeof(uint32_t));
+		unsigned i = n / W.M;
 		unsigned j = n % W.M;
-		W.W[i][j] = !W.W[i][j];
+
+		if ( is_BIT(kind) ) {
+			W.W[i][j] = !W.W[i][j];
+		} else {
+			bool val = !W.W[i][j];
+			for (unsigned l = 0; l < sizeof(uint32_t); l++) {
+				for (unsigned m = 0;
+				     m < sizeof(uint32_t); m++) {
+					W.[l][m] = val;
+				}
+
+			}
+		}
 	}
 }
 

@@ -57,7 +57,7 @@ BoolMat::BoolMat (unsigned M, unsigned N)
 
 	W = new std::vector<bool>[M];
 	for (unsigned i = 0; i < M; i++) {
-		W[i].reserve(N);
+		W[i].assign(N, 0);
 	}
 }
 
