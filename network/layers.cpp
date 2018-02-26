@@ -118,10 +118,7 @@ void LayerGeneric::FlipBit(unsigned N) {
 		} else {
 			bool val = !W.W[i][j];
 			for (unsigned l = 0; l < sizeof(uint32_t); l++) {
-				for (unsigned m = 0;
-				     m < sizeof(uint32_t); m++) {
-					W.[l][m] = val;
-				}
+				W.W[l][l] = val; // diagonal elements
 
 			}
 		}
