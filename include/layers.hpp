@@ -74,6 +74,8 @@ inline bool is_BIT (LayerKind k) {
 // 
 class LayerGeneric {
 
+	friend class BoolNN;
+
 public:
 	LayerGeneric(LayerKind, unsigned, unsigned); // input, output dim
 	std::vector<bool> Compute(const std::vector<bool>&) const;
@@ -106,13 +108,14 @@ class BoolNN {
 
 public:
 	BoolNN();
+	BoolNN(unsigned);
 
 	// file i/o
-	bool LoadFile(const std::string&);
-	bool DumpFile(const std::string&);
+	bool LoadFile(const char*);
+	bool DumpFile(const char*);
 
 	// Add an already constructed Layer
-	bool AddLayer(LayerGeneric&);
+	bool AddLayer(LayerGeneric*);
 	// add a layer of a certain kind with output size
 	bool AddLayer(LayerKind, unsigned);
 
@@ -121,9 +124,10 @@ public:
 	std::vector<bool> Compute(const std::vector<bool>&);
 
 private:
-	std::vector<LayerGeneric> layers;
+	std::vector<LayerGeneric> Layers;
 	// make parallel layers????
-
+	unsigned N_in, N_layers;
+	uint32_t version;	
 };
 
 
