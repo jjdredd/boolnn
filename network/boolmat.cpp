@@ -98,7 +98,7 @@ std::vector<bool> BoolMat::operator& (const std::vector<bool>& rhs) const {
 		return res;
 	}
 
-	res.reserve(M);
+	res.resize(M);
 
 	for (unsigned i = 0; i < M; i++) {
 		res[i] = W[i] & rhs;

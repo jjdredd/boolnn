@@ -4,6 +4,13 @@
 
 #include "layers.hpp"
 
+void dump_vec(std::vector<bool> r_1) {
+	for (unsigned i = 0; i < r_1.size(); i++) {
+		std::cout << r_1[i] << ' ';
+	}
+	std::cout << std::endl;
+}
+
 int main (int argc, char **argv) {
 
 	BoolNN bnn(32), bnn_2;
@@ -11,21 +18,21 @@ int main (int argc, char **argv) {
 	std::vector<bool> r_1, r_2;
 	char fname[] = "test.bnn";
 
-	bnn.AddLayer(LayerKind::BIT_BIAS, 32);
-	// bnn.AddLayer(LayerKind::BIT, 32);
+	bnn.AddLayer(LayerKind::BIT, 128);
+	bnn.AddLayer(LayerKind::BIT, 128);
+	bnn.AddLayer(LayerKind::BIT, 20);
+	
 
-	for (unsigned i = 0; i < 16; i++) {
-		v.push_back(true);
+	for (unsigned i = 0; i < 32; i++) {
+		v.push_back(!(rand() % 2));
 	}
-	for (unsigned i = 16; i < 32; i++) {
-		v.push_back(true);
-	}
-
 
 	std::cout << bnn.GetNDOF() << " nn dof" << std::endl;
 
-	for (unsigned i = 0; i < 3200; i++) {
-		bnn.FlipBit(i);
+	for (unsigned i = 0; i < bnn.GetNDOF() / 3; i++) {
+		bnn.FlipBit(rand());
+		r_1 = bnn.Compute(v);
+		dump_vec(r_1);
 	}
 
 	r_1 = bnn.Compute(v);

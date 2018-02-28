@@ -148,7 +148,7 @@ void BoolNN::FlipBit(unsigned N) {
 	for (LayerGeneric *l : Layers) {
 		ndof += l->GetNDOF();
 		if (n < ndof) {
-			l->FlipBit(n - ndof);
+			l->FlipBit(n);
 			break;
 		}
 	}
@@ -161,10 +161,6 @@ std::vector<bool> BoolNN::Compute(const std::vector<bool>& input) const {
 
 	for (const LayerGeneric *l : Layers) {
 		r = l->Compute(r);
-
-		for (unsigned i = 0; i < r.size(); i++) {
-			std::cout << r[i] <<  std::endl;
-		}
 	}
 	return r;
 }
