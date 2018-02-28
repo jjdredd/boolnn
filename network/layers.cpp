@@ -50,7 +50,7 @@ LayerGeneric::LayerGeneric(LayerKind kind, unsigned N_in, unsigned N_out)
 	: kind(kind), N_in(N_in), N_out(N_out), W(2*N_out, N_in), B(2*N_out) {
 
 
-	N_bits = N_in * N_out;
+	N_bits = 2 * N_in * N_out;
 	
 	if ( !is_BIT(kind) ) {
 		N_bits /= sizeof(uint32_t);
@@ -108,7 +108,7 @@ void LayerGeneric::FlipBit(unsigned N) {
 	unsigned n = N % GetNDOF(); // clip it
 	int k = n - W.GetNDOF();
 
-	if (k > 0) {
+	if (k >= 0) {
 		// if it's an unbiased layer, we will have k = 0,
 		// so this this shouldn't be reachable
 		// in the unbiased case

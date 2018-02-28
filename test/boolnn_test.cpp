@@ -18,9 +18,10 @@ int main (int argc, char **argv) {
 	std::vector<bool> r_1, r_2;
 	char fname[] = "test.bnn";
 
+	bnn.AddLayer(LayerKind::BIT_BIAS, 128);
 	bnn.AddLayer(LayerKind::BIT, 128);
-	bnn.AddLayer(LayerKind::BIT, 128);
-	bnn.AddLayer(LayerKind::BIT, 20);
+	bnn.AddLayer(LayerKind::DWORD, 128);
+	bnn.AddLayer(LayerKind::BIT_BIAS, 16);
 	
 
 	for (unsigned i = 0; i < 32; i++) {
@@ -29,10 +30,10 @@ int main (int argc, char **argv) {
 
 	std::cout << bnn.GetNDOF() << " nn dof" << std::endl;
 
-	for (unsigned i = 0; i < bnn.GetNDOF() / 3; i++) {
+	for (unsigned i = 0; i < bnn.GetNDOF() * 4; i++) {
 		bnn.FlipBit(rand());
 		r_1 = bnn.Compute(v);
-		dump_vec(r_1);
+		// dump_vec(r_1);
 	}
 
 	r_1 = bnn.Compute(v);
