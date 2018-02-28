@@ -47,19 +47,24 @@ static void BitUnpack(std::vector<bool>& v, const uint32_t a,
 // LayerGeneric class
 // 
 LayerGeneric::LayerGeneric(LayerKind kind, unsigned N_in, unsigned N_out)
-	: kind(kind), N_in(N_in), N_out(N_out), W(N_in, 2*N_out), B(2*N_out) {
+	: kind(kind), N_in(N_in), N_out(N_out), W(2*N_out, N_in), B(2*N_out) {
 
 
 	N_bits = N_in * N_out;
 	
 	if ( !is_BIT(kind) ) {
 		N_bits /= sizeof(uint32_t);
+
+		if ( N_in % (8 * sizeof(uint32_t))
+		     || N_out % (8 * sizeof(uint32_t))) {
+			std::cerr << "DWORD layer of wrong size"
+				  << std::endl;
+		}
 	}
 
 	if ( is_Biased(kind) ) {
 		N_bits += 2 * N_out;
 	}
-	
 }
 
 unsigned LayerGeneric::GetNDOF() const {
@@ -100,8 +105,8 @@ std::vector<bool> LayerGeneric::Compute(const std::vector<bool>& input) const {
 
 void LayerGeneric::FlipBit(unsigned N) {
 	
-	unsigned n = N < GetNDOF() ? N : N%GetNDOF(); // clip it
-	unsigned k = n - W.GetNDOF();
+	unsigned n = N % GetNDOF(); // clip it
+	int k = n - W.GetNDOF();
 
 	if (k > 0) {
 		// if it's an unbiased layer, we will have k = 0,
@@ -110,8 +115,8 @@ void LayerGeneric::FlipBit(unsigned N) {
 		B[k] = !B[k];
 	} else {
 		// not using k here
-		unsigned i = n / W.M;
-		unsigned j = n % W.M;
+		unsigned i = n / W.N;
+		unsigned j = n % W.N;
 
 		if ( is_BIT(kind) ) {
 			W.W[i][j] = !W.W[i][j];

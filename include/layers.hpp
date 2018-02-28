@@ -109,6 +109,7 @@ class BoolNN {
 public:
 	BoolNN();
 	BoolNN(unsigned);
+	~BoolNN();
 
 	// file i/o
 	bool LoadFile(const char*);
@@ -123,8 +124,10 @@ public:
 	void FlipBit(unsigned);
 	std::vector<bool> Compute(const std::vector<bool>&) const;
 
+	unsigned GetNDOF() const;
+
 private:
-	std::vector<LayerGeneric> Layers;
+	std::vector<LayerGeneric *> Layers;
 	// make parallel layers????
 	unsigned N_in, N_layers;
 	uint32_t version;	
