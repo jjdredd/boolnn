@@ -16,7 +16,6 @@ BoolNN::BoolNN(unsigned N_in) : N_in(N_in) {
 }
 
 
-
 bool BoolNN::LoadFile(const char* file) {
 
 	std::fstream fd(file);
@@ -64,7 +63,7 @@ bool BoolNN::LoadFile(const char* file) {
 
 
 
-bool BoolNN::DumpFile(const char* file) {
+bool BoolNN::DumpFile(const char* file) const {
 
 	std::fstream fd(file);
 	uint32_t version, nl = N_layers;
@@ -109,3 +108,26 @@ bool BoolNN::AddLayer(LayerKind k, unsigned size) {
 }
 
 
+void BoolNN::FlipBit(unsigned n) {
+	// we don't expect to have more than uint32_max dof
+
+	unsigned ndof = 0;
+	for (LayerGeneric &l : Layers) {
+		ndof += l.GetNDOF();
+		if (n < ndof) {
+			l.FlipBit(n - ndof);
+			break;
+		}
+	}
+	return;
+}
+
+std::vector<bool> BoolNN::Compute(const std::vector<bool>& input) const {
+
+	std::vector<bool> r = input;
+
+	for (const LayerGeneric &l : Layers) {
+		r = l.Compute(r);
+	}
+	return r;
+}

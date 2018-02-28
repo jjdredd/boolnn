@@ -112,7 +112,7 @@ public:
 
 	// file i/o
 	bool LoadFile(const char*);
-	bool DumpFile(const char*);
+	bool DumpFile(const char*) const;
 
 	// Add an already constructed Layer
 	bool AddLayer(LayerGeneric*);
@@ -121,7 +121,7 @@ public:
 
 	// simulation
 	void FlipBit(unsigned);
-	std::vector<bool> Compute(const std::vector<bool>&);
+	std::vector<bool> Compute(const std::vector<bool>&) const;
 
 private:
 	std::vector<LayerGeneric> Layers;
